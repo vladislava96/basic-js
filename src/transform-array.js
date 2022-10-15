@@ -13,48 +13,49 @@ const { NotImplementedError } = require('../extensions/index.js');
  * transform([1, 2, 3, '--discard-prev', 4, 5]) => [1, 2, 4, 5]
  * 
  */
-function transform(arr) {
-  
-  if (Array.isArray(arr) || arr.length) {
-    let newArr = arr;
-    for (let i = 0; i < newArr.length; i++) {
-      if (newArr[i] === '--double-next') {
-        if(newArr[i + 1]) {
-          newArr[i] = newArr[i + 1]
-        } else {
-          newArr.splice(i, 1)
-        }
-
-      } else if (newArr[i] === '--discard-prev') {
-        if (newArr[i - 1]) {
-          newArr.splice(i - 1, 2)
-        } else {
-          newArr.splice(i, 1)
-        }
-
-      } else if (newArr[i] === '--double-prev') {
-        if (newArr[i - 1]) {
-          newArr[i] = newArr[i - 1]
-        } else {
-          newArr.splice(i, 1)
-        }
-        
-      } else if (newArr[i] === '--discard-next') {
-        if (newArr[i + 1]) {
-          newArr.splice(i, 2)
-        } else {
-          newArr.splice(i, 1)
-        }
-      }
-    }
-    console.log(newArr) 
-  } else {
-    console.log('\'arr\' parameter must be an instance of the Array!') 
+ function transform(arr) {
+  if (!(arr instanceof Array)) {
+    throw new Error('\'arr\' parameter must be an instance of the Array!')
   }
-}
 
-transform([1, 2, 3, '--discard-next', 1337, '--double-prev', 4, 5])
+  let newArr = []
+  for (let index = 0; index < arr.length; index ++) {
+    switch (arr[index]) {
+      case '--discard-prev':
+        if ('--discard-next' !== arr[index - 2]) {
+          newArr.pop()
+        }
+        break
+
+      case '--double-prev':
+        if (
+          '--discard-next' !== arr[index - 2] &&
+          undefined !== arr[index - 1]
+        ) {
+          newArr.push(arr[index - 1])
+        }
+        break
+
+      case '--double-next':
+        ++index;
+        if (undefined !== arr[index]) {
+          newArr.push(arr[index])
+          newArr.push(arr[index])
+        }
+        break
+
+      case '--discard-next':
+        ++index
+        break
+
+      default:
+        newArr.push(arr[index])
+    }
+  }
+
+  return newArr
+}
 
 module.exports = {
   transform
-};
+}
